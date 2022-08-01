@@ -10,22 +10,32 @@ config = {
   "messagingSenderId": "9603805946",
   "appId": "1:9603805946:web:102d33534e94ee90228f43",
   "measurementId": "G-WD6ELP1MJJ",
-  "databaseURL": ""
+  "databaseURL": "https://test-c84ce-default-rtdb.europe-west1.firebasedatabase.app/"
 }
 
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
+db = firebase.database()
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'super-secret-key'
 
 
-@app.route('/home')
-def home():
-    return render_template('home.html')
+@app.route('/all_tweets')
+def all_tweets():
+    tweets = db.child("tweets").get().val()
+
+    return render_template('all_tweets.html', tweets = tweets)
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
+    error = ""
+    if request.method == 'POST':
+        tweettitle = request.form['tweettitle']
+        tweetbody = request.form['tweetbody']
+        tweets = {'tweettitle': tweettitle, 'tweetbody': tweetbody}
+        db.child("tweets").push(tweets)
+
     return render_template('add_tweet.html')
 
 
@@ -35,6 +45,12 @@ def signin():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        username = request.form['username']
+        full_name = request.form['full_name']
+        bio = request.form['bio']
+        user = {"full_name": full_name, "username": username, "bio": bio}
+        #db.child("Users").child(login_session['user'])
+        #['localId'].set(user)
         try:
             login_session['user'] = auth.sign_in_with_email_and_password(email, password)
             return redirect(url_for('add_tweet'))
@@ -56,10 +72,12 @@ def signup():
         password = request.form['password']
         try:
             login_session['user'] = auth.create_user_with_email_and_password(email, password)
-            return redirect(url_for('home'))
+            return redirect(url_for('all_tweets'))
         except:
             error = "Authentication failed"
     return render_template("signup.html")
+
+
 
 
 if __name__ == '__main__':
