@@ -40,7 +40,7 @@ def add_tweet():
 
 
 @app.route('/', methods=['GET', 'POST'])
-def signin():
+def signup():
     error = ""
     if request.method == 'POST':
         email = request.form['email']
@@ -52,7 +52,7 @@ def signin():
         #db.child("Users").child(login_session['user'])
         #['localId'].set(user)
         try:
-            login_session['user'] = auth.sign_in_with_email_and_password(email, password)
+            login_session['user'] = auth.create_user_with_email_and_password(email, password)
             return redirect(url_for('add_tweet'))
         except:
             error = "Authentication failed"
@@ -65,13 +65,13 @@ def signout():
     return redirect(url_for('signin'))
 
 @app.route('/signup', methods=['GET', 'POST'])
-def signup():
+def signin():
     error = ""
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         try:
-            login_session['user'] = auth.create_user_with_email_and_password(email, password)
+            login_session['user'] = auth.sign_in_with_email_and_password(email, password)
             return redirect(url_for('all_tweets'))
         except:
             error = "Authentication failed"
